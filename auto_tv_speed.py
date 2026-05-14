@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 PING_TIMEOUT = 2
 KEEP_TOP_NUM = 5
 SRC_DIR = "sources"
-OUT_DIR = "output"
+OUT_DIR = "docs"
 
 ALLOW_KEYWORDS = [
     "CCTV", "央视", "卫视", "北京卫视", "上海卫视", "广东卫视",
