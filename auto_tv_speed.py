@@ -92,8 +92,8 @@ def speed_test_and_sort(channel_data):
     return res
 
 def generate_html(best_data):
-    html_template = """
-<!DOCTYPE html>
+    # 改用普通字符串，不用三引号f-string，避开css{}冲突
+    html_head = '''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -104,24 +104,26 @@ body{padding:20px;font-family:微软雅黑;}
 a{margin:0 10px;color:#0066cc;text-decoration:none;}
 </style>
 </head>
-<body>
-<h2>自动测速优选 - 央视卫视频道（每频道最快{num}条）</h2>
-<p>更新时间：{now_time}</p>
-{content}
-</body>
-</html>
-"""
-    content = ""
+<body>'''
+
     now_time = time.strftime("%Y-%m-%d %H:%M:%S")
+    num = KEEP_TOP_NUM
+    html_title = f'<h2>自动测速优选 - 央视卫视频道（每频道最快{num}条）</h2>\n<p>更新时间：{now_time}</p>\n'
+
+    content = ""
     for name, url_list in best_data.items():
         content += f'<div class="item"><b>{name}</b> '
         for url, delay in url_list:
             content += f'<a href="{url}" target="_blank">线路({delay}ms)</a>'
         content += "</div>\n"
-    html = html_template.format(num=KEEP_TOP_NUM, now_time=now_time, content=content)
+
+    html_end = '''</body>
+</html>'''
+
+    full_html = html_head + html_title + content + html_end
     out_path = os.path.join(OUT_DIR, "index.html")
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(html)
+        f.write(full_html)
 
 def generate_m3u(best_data):
     m3u = "#EXTM3U\n"
@@ -133,18 +135,17 @@ def generate_m3u(best_data):
         f.write(m3u)
 
 def main():
-    # 强制建目录，不怕不存在
     os.makedirs(SRC_DIR, exist_ok=True)
     os.makedirs(OUT_DIR, exist_ok=True)
     
     scan_all_txt()
     if not channel_dict:
-        print("未扫描到任何直播源txt内容")
+        print("⚠️ 未扫描到任何直播源txt内容，请检查sources文件夹")
         return
 
     filter_data = filter_cctv_weishi()
     if not filter_data:
-        print("过滤后无央视卫视频道")
+        print("⚠️ 过滤后无央视卫视频道，请检查txt内容")
         return
 
     best_data = speed_test_and_sort(filter_data)
